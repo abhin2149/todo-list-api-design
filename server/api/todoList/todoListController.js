@@ -21,37 +21,65 @@ exports.params = function (req, res, next, id) {
 };
 
 exports.get = function (req, res, next) {
-    TodoList.find({})
-        .populate('owner', '-__v -password')
-        .populate('todos', 'name priority', null, {sort: {priority: 1}})
-        .select('-__v')
-        .exec()
-        .then(function (todoLists) {
-            res.json(todoLists);
-        }, function (err) {
-            next(err);
-        });
+       TodoList.find({})
+            .populate('owner', '-__v -password')
+            .populate('todos', 'name priority', null, {sort: {priority: 1}})
+            .select('-__v')
+            .exec()
+            .then(function (todoLists) {
+                res.json(todoLists);
+            }, function (err) {
+                next(err);
+            });
+
 };
 
 exports.getOne = function (req, res, next) {
-    var todoList = req.todoList;
-    res.json(todoList);
+    var user=req.user;
+    var todolist = req.todoList;
+    var flag = 0;
+    todolist.view.forEach(function (id) {
+        if (id.equals(user._id)) {
+            flag = 1;
+        }
+    });
+
+    if (flag === 1 || todolist.owner.equals(user._id)) {
+        res.json(todolist);
+    }
+    else {
+        res.status(401).send('You are not Authorized to view this document');
+    }
+
 };
 
 exports.put = function (req, res, next) {
-    var todoList = req.todoList;
+    var todolist = req.todoList;
+    var user = req.user;
 
-    var update = req.body;
-
-    _.merge(todoList, update);
-
-    todoList.save(function (err, saved) {
-        if (err) {
-            next(err);
-        } else {
-            res.json(saved);
+    var flag = 0;
+    todolist.edit.forEach(function (id) {
+        if (id.equals(user._id)) {
+            flag = 1;
         }
-    })
+    });
+
+    if (flag === 1 || todolist.owner.equals(user._id)) {
+        var update = req.body;
+
+        _.merge(todolist, update);
+
+        todolist.save(function (err, saved) {
+            if (err) {
+                next(err);
+            } else {
+                res.json(saved);
+            }
+        })    }
+    else {
+        res.status(401).send('You are not Authorized to edit this document');
+    }
+
 };
 
 exports.post = function (req, res, next) {
@@ -67,20 +95,35 @@ exports.post = function (req, res, next) {
 };
 
 exports.delete = function (req, res, next) {
-    req.todoList.remove(function (err, removed) {
-        if (err) {
-            next(err);
-        } else {
-            res.json(removed);
-        }
-    });
+    var user=req.user;
+    var todolist=req.todoList;
+    if(todolist.owner.equals(user._id)){
+        todolist.remove(function (err, removed) {
+            if (err) {
+                next(err);
+            } else {
+                res.json(removed);
+            }
+        });
+    }
+    else{
+        res.status(401).send('You are not Authorized to delete this document');
+    }
+
 };
 
 exports.add_todo=function(req,res,next){
-
+    var user=req.user;
     var todolist = req.todoList;
     var flag = 0;
-    if (todolist.owner._id.equals(req.user._id)) {
+    todolist.create.forEach(function (id) {
+        if (id.equals(user._id)) {
+            flag = 1;
+        }
+    });
+
+    if (flag === 1 || todolist.owner.equals(user._id)) {
+        flag=0;
         todolist.todos.forEach(function (id) {
             if (id.equals(req.body.todo_id)) {
                 flag = 1;
@@ -99,18 +142,26 @@ exports.add_todo=function(req,res,next){
                 }
             })
         }
+
     }
     else {
-        res.status(401).send('You are not Authorized to make changes to this document');
+        res.status(401).send('You are not Authorized to add todos to this document');
     }
-
 };
 
 exports.delete_todo=function(req,res,next){
     var todolist = req.todoList;
+    var user=req.user;
     var flag = 0;
-    var pos = -1;
-    if (todolist.owner._id.equals(req.user._id)) {
+    todolist.delete.forEach(function (id) {
+        if (id.equals(user._id)) {
+            flag = 1;
+        }
+    });
+
+    if (flag === 1 || todolist.owner.equals(user._id)) {
+        flag=0;
+        var pos = -1;
         todolist.todos.forEach(function (id) {
             if (id.equals(req.body.todo_id)) {
                 flag = 1;
@@ -134,9 +185,8 @@ exports.delete_todo=function(req,res,next){
 
     }
     else {
-        res.status(401).send('You are not Authorized to make changes to this document');
+        res.status(401).send('You are not Authorized to delete todos from this document');
     }
-
 };
 
 exports.viewing_permission_add = function (req, res, next) {

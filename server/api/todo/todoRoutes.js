@@ -7,7 +7,6 @@ var checkUser = [auth.decodeToken(), auth.getFreshUser()];
 // setup boilerplate route jsut to satisfy a request
 // for building
 router.param('id', controller.params);
-router.post('/swap',checkUser,controller.swap);
 
 router.route('/')
   .get(controller.get)
@@ -17,5 +16,8 @@ router.route('/:id')
   .get(controller.getOne)
   .put(checkUser, controller.put)
   .delete(checkUser, controller.delete);
+
+router.route('/swap')
+    .post(checkUser,controller.swap);
 
 module.exports = router;

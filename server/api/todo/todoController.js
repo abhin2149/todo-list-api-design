@@ -71,62 +71,75 @@ exports.delete = function (req, res, next) {
     });
 };
 
-exports.swap = function (req, res, next) {                        // to swap priorities of two todos with given ids in a given todolist id
+exports.swap = function (req, res, next) {                        // to swap priorities of two todos with given ids in a given todolist
     var todo1, todo2;
-    Todo.findById(req.body.id1)
-        .then(function (firsttodo) {
-            if (!firsttodo) {
-                next(new Error('No todo with that id'));
+    var user=req.user;
+    TodoList.findById(req.body.todolist_id)
+        .then(function (todolist) {
+            if (!todolist) {
+                next(new Error('Invalid todolist id'));
             } else {
-                todo1 = firsttodo;
-                Todo.findById(req.body.id2)
-                    .then(function (secondtodo) {
-                        if (!secondtodo) {
-                            next(new Error('No todo with that id'));
-                        }
-                        else {
-                            todo2 = secondtodo;
-                            var temp = todo1.priority;
-                            todo1.priority = todo2.priority;
-                            todo2.priority = 0;
-                            todo2.save(function (err, saved) {
-                                if (err) {
-                                    next(err);
-                                }
-                                else {
-                                    todo1.save(function (err, saved) {
-                                        if (err) {
-                                            next(err);
+                var flag = 0;
+                todolist.edit.forEach(function (id) {
+                    if (id.equals(user._id)) {
+                        flag = 1;
+                    }
+                });
+
+                if (flag === 1 || todolist.owner.equals(user._id)) {
+                    Todo.findById(req.body.id1)
+                        .then(function (firsttodo) {
+                            if (!firsttodo) {
+                                next(new Error('Invalid todo id'));
+                            } else {
+                                todo1 = firsttodo;
+                                Todo.findById(req.body.id2)
+                                    .then(function (secondtodo) {
+                                        if (!secondtodo) {
+                                            next(new Error('Invalid todo id'));
                                         }
                                         else {
-                                            todo2.priority = temp;
+                                            todo2 = secondtodo;
+                                            var temp = todo1.priority;
+                                            todo1.priority = todo2.priority;
+                                            todo2.priority = 0;
                                             todo2.save(function (err, saved) {
                                                 if (err) {
                                                     next(err);
                                                 }
                                                 else {
-                                                    TodoList.find({'_id': req.body.todolist_id})
-                                                        .then(function (todolist) {
-                                                            if (!todolist) {
-                                                                next(new Error('No todoList with that id'));
+                                                    todo1.save(function (err, saved) {
+                                                        if (err) {
+                                                            next(err);
+                                                        }
+                                                        else {
+                                                            todo2.priority = temp;
+                                                            todo2.save(function (err, saved) {
+                                                                if (err) {
+                                                                    next(err);
+                                                                }
+                                                                else {
+                                                                    res.json(todolist);
+                                                                }
+                                                            });
+                                                        }
+                                                    });
 
-                                                            }
-                                                            else {
-                                                                res.json(todolist);
-                                                            }
-                                                        })
                                                 }
                                             });
+
                                         }
+                                    }, function (err) {
+                                        next(err);
                                     });
-
-                                }
-                            });
-
-                        }
-                    }, function (err) {
-                        next(err);
-                    });
+                            }
+                        }, function (err) {
+                            next(err);
+                        });
+                }
+                else {
+                    res.status(401).send('You are not Authorized to edit this document');
+                }
             }
         }, function (err) {
             next(err);
