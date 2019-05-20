@@ -191,8 +191,16 @@ exports.delete_todo=function(req,res,next){
 
 exports.viewing_permission_add = function (req, res, next) {
     var todolist = req.todoList;
+    var user=req.user;
     var flag = 0;
-    if (todolist.owner._id.equals(req.user._id)) {
+    todolist.view.forEach(function (id) {
+        if (id.equals(user._id)) {
+            flag = 1;
+        }
+    });
+
+    if (flag === 1 || todolist.owner.equals(user._id)) {
+        flag = 0;
         todolist.view.forEach(function (id) {
             if (id.equals(req.body.user_id)) {
                 flag = 1;
@@ -213,17 +221,24 @@ exports.viewing_permission_add = function (req, res, next) {
         }
     }
     else {
-        res.status(401).send('You are not Authorized to make changes to this document');
+        res.status(401).send('You are not Authorized to add viewing permissions to this document');
     }
-
 
 };
 
 exports.viewing_permission_remove = function (req, res, next) {
     var todolist = req.todoList;
+    var user=req.user;
     var flag = 0;
-    var pos = -1;
-    if (todolist.owner._id.equals(req.user._id)) {
+    todolist.view.forEach(function (id) {
+        if (id.equals(user._id)) {
+            flag = 1;
+        }
+    });
+
+    if (flag === 1 || todolist.owner.equals(user._id)) {
+        flag = 0;
+        var pos = -1;
         todolist.view.forEach(function (id) {
             if (id.equals(req.body.user_id)) {
                 flag = 1;
@@ -244,10 +259,9 @@ exports.viewing_permission_remove = function (req, res, next) {
         else {
             res.status(404).send('id not found for deletion');
         }
-
     }
     else {
-        res.status(401).send('You are not Authorized to make changes to this document');
+        res.status(401).send('You are not Authorized to delete viewing permissions on this document');
     }
 };
 
@@ -255,8 +269,16 @@ exports.viewing_permission_remove = function (req, res, next) {
 
 exports.creating_permission_add = function (req, res, next) {
     var todolist = req.todoList;
+    var user=req.user;
     var flag = 0;
-    if (todolist.owner._id.equals(req.user._id)) {
+    todolist.create.forEach(function (id) {
+        if (id.equals(user._id)) {
+            flag = 1;
+        }
+    });
+
+    if (flag === 1 || todolist.owner.equals(user._id)) {
+        flag = 0;
         todolist.create.forEach(function (id) {
             if (id.equals(req.body.user_id)) {
                 flag = 1;
@@ -275,10 +297,9 @@ exports.creating_permission_add = function (req, res, next) {
                 }
             })
         }
-
     }
     else {
-        res.status(401).send('You are not Authorized to make changes to this document');
+        res.status(401).send('You are not Authorized to add creating permissions to this document');
     }
 
 
@@ -286,9 +307,17 @@ exports.creating_permission_add = function (req, res, next) {
 
 exports.creating_permission_remove = function (req, res, next) {
     var todolist = req.todoList;
+    var user=req.user;
     var flag = 0;
-    var pos = -1;
-    if (todolist.owner._id.equals(req.user._id)) {
+    todolist.create.forEach(function (id) {
+        if (id.equals(user._id)) {
+            flag = 1;
+        }
+    });
+
+    if (flag === 1 || todolist.owner.equals(user._id)) {
+        flag = 0;
+        var pos = -1;
         todolist.create.forEach(function (id) {
             if (id.equals(req.body.user_id)) {
                 flag = 1;
@@ -311,7 +340,7 @@ exports.creating_permission_remove = function (req, res, next) {
         }
     }
     else {
-        res.status(401).send('You are not Authorized to make changes to this document');
+        res.status(401).send('You are not Authorized to delete creating permissions on this document');
     }
 };
 
@@ -319,13 +348,20 @@ exports.creating_permission_remove = function (req, res, next) {
 
 exports.edit_permission_add = function (req, res, next) {
     var todolist = req.todoList;
+    var user=req.user;
     var flag = 0;
-    if (todolist.owner._id.equals(req.user._id)) {
+    todolist.edit.forEach(function (id) {
+        if (id.equals(user._id)) {
+            flag = 1;
+        }
+    });
+
+    if (flag === 1 || todolist.owner.equals(user._id)) {
+        flag = 0;
         todolist.edit.forEach(function (id) {
             if (id.equals(req.body.user_id)) {
                 flag = 1;
                 res.status(409).send('id already present');
-
             }
         });
 
@@ -340,10 +376,9 @@ exports.edit_permission_add = function (req, res, next) {
                 }
             })
         }
-
     }
     else {
-        res.status(401).send('You are not Authorized to make changes to this document');
+        res.status(401).send('You are not Authorized to add editing permissions to this document');
     }
 
 
@@ -351,9 +386,17 @@ exports.edit_permission_add = function (req, res, next) {
 
 exports.edit_permission_remove = function (req, res, next) {
     var todolist = req.todoList;
+    var user=req.user;
     var flag = 0;
-    var pos = -1;
-    if (todolist.owner._id.equals(req.user._id)) {
+    todolist.edit.forEach(function (id) {
+        if (id.equals(user._id)) {
+            flag = 1;
+        }
+    });
+
+    if (flag === 1 || todolist.owner.equals(user._id)) {
+        flag = 0;
+        var pos = -1;
         todolist.edit.forEach(function (id) {
             if (id.equals(req.body.user_id)) {
                 flag = 1;
@@ -376,7 +419,7 @@ exports.edit_permission_remove = function (req, res, next) {
         }
     }
     else {
-        res.status(401).send('You are not Authorized to make changes to this document');
+        res.status(401).send('You are not Authorized to delete editing permissions on this document');
     }
 };
 
@@ -384,13 +427,20 @@ exports.edit_permission_remove = function (req, res, next) {
 
 exports.delete_permission_add = function (req, res, next) {
     var todolist = req.todoList;
+    var user=req.user;
     var flag = 0;
-    if (todolist.owner._id.equals(req.user._id)) {
+    todolist.delete.forEach(function (id) {
+        if (id.equals(user._id)) {
+            flag = 1;
+        }
+    });
+
+    if (flag === 1 || todolist.owner.equals(user._id)) {
+        flag = 0;
         todolist.delete.forEach(function (id) {
             if (id.equals(req.body.user_id)) {
                 flag = 1;
                 res.status(409).send('id already present');
-
             }
         });
 
@@ -405,10 +455,9 @@ exports.delete_permission_add = function (req, res, next) {
                 }
             })
         }
-
     }
     else {
-        res.status(401).send('You are not Authorized to make changes to this document');
+        res.status(401).send('You are not Authorized to add deleting permissions to this document');
     }
 
 
@@ -416,9 +465,17 @@ exports.delete_permission_add = function (req, res, next) {
 
 exports.delete_permission_remove = function (req, res, next) {
     var todolist = req.todoList;
+    var user=req.user;
     var flag = 0;
-    var pos = -1;
-    if (todolist.owner._id.equals(req.user._id)) {
+    todolist.delete.forEach(function (id) {
+        if (id.equals(user._id)) {
+            flag = 1;
+        }
+    });
+
+    if (flag === 1 || todolist.owner.equals(user._id)) {
+        flag = 0;
+        var pos = -1;
         todolist.delete.forEach(function (id) {
             if (id.equals(req.body.user_id)) {
                 flag = 1;
@@ -441,6 +498,6 @@ exports.delete_permission_remove = function (req, res, next) {
         }
     }
     else {
-        res.status(401).send('You are not Authorized to make changes to this document');
+        res.status(401).send('You are not Authorized to remove deleting permissions on this document');
     }
 };
